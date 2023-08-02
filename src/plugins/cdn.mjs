@@ -40,6 +40,50 @@ export let deploy = {
       }
     }
 
+    // create origin request policy
+    cloudformation.Resources.OriginRequestPolicy = {
+      Type: "AWS::CloudFront::OriginRequestPolicy",
+      Properties: {
+        OriginRequestPolicyConfig: {
+          Name: domain.replace('.', '-') + '-origin-request-policy',
+          CookiesConfig: { CookieBehavior: 'all' },
+          HeadersConfig: { HeaderBehavior: 'allViewer' },
+          QueryStringsConfig: { QueryStringBehavior: 'all' }
+        }
+      }
+    }
+
+    // create a cache policy for our cloudfront distribution
+    cloudformation.Resources.CachePolicy = {
+      Type: "AWS::CloudFront::CachePolicy",
+      Properties: {
+        CachePolicyConfig: {
+          Name: domain.replace('.', '-') + '-cache-policy',
+          DefaultTTL: 86400,
+          MaxTTL: 31536000,
+          MinTTL: 0,
+          ParametersInCacheKeyAndForwardedToOrigin: {
+            EnableAcceptEncodingGzip: true,
+            EnableAcceptEncodingBrotli: true,
+            HeadersConfig: {
+              HeaderBehavior: 'whitelist',
+              Headers:  [ 
+                'Authorization', 
+                'Sec-WebSocket-Key',
+                'Sec-WebSocket-Version',
+                'Sec-WebSocket-Protocol',
+                'Sec-WebSocket-Accept',
+                'Sec-WebSocket-Extensions' 
+              ] 
+            },
+            CookiesConfig: { CookieBehavior: 'none' },
+            QueryStringsConfig: { QueryStringBehavior: 'none' },
+          }
+        }
+      }
+    }
+
+
     // create cloudfront distribution
     cloudformation.Resources.CDN = {
       Type: 'AWS::CloudFront::Distribution',
@@ -84,10 +128,13 @@ export let deploy = {
           }],
           DefaultCacheBehavior: {
             TargetOriginId: 'HttpEdgeOrigin',
+            /*
             ForwardedValues: {
               QueryString: true,
               Cookies: { Forward: 'all' },
-            },
+            },*/
+            OriginRequestPolicyId: { Ref: 'OriginRequestPolicy' },
+            CachePolicyId: { Ref: 'CachePolicy' },
             ViewerProtocolPolicy: 'redirect-to-https',
             MinTTL: 0,
             AllowedMethods: [ 'HEAD', 'DELETE', 'POST', 'GET', 'OPTIONS', 'PUT', 'PATCH' ],
@@ -100,10 +147,13 @@ export let deploy = {
           CacheBehaviors: [{
             TargetOriginId: 'WssEdgeOrigin',
             PathPattern: '/_wss/*',
+            /*
             ForwardedValues: {
               QueryString: true,
               Cookies: { Forward: 'all' },
-            },
+            },*/
+            OriginRequestPolicyId: { Ref: 'OriginRequestPolicy' },
+            CachePolicyId: { Ref: 'CachePolicy' },
             ViewerProtocolPolicy: 'allow-all',
             MinTTL: 0,
             AllowedMethods: [ 'HEAD', 'DELETE', 'POST', 'GET', 'OPTIONS', 'PUT', 'PATCH' ],

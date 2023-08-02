@@ -1,7 +1,7 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Transform": "AWS::Serverless-2016-10-31",
-  "Description": "Exported by architect/package@8.5.0 on 2023-08-01T22:32:09.126Z",
+  "Description": "Exported by architect/package@8.5.0 on 2023-08-02T19:50:24.921Z",
   "Resources": {
     "Role": {
       "Type": "AWS::IAM::Role",
@@ -753,6 +753,55 @@
         }
       }
     },
+    "OriginRequestPolicy": {
+      "Type": "AWS::CloudFront::OriginRequestPolicy",
+      "Properties": {
+        "OriginRequestPolicyConfig": {
+          "Name": "meatspace-chat-origin-request-policy",
+          "CookiesConfig": {
+            "CookieBehavior": "all"
+          },
+          "HeadersConfig": {
+            "HeaderBehavior": "allViewer"
+          },
+          "QueryStringsConfig": {
+            "QueryStringBehavior": "all"
+          }
+        }
+      }
+    },
+    "CachePolicy": {
+      "Type": "AWS::CloudFront::CachePolicy",
+      "Properties": {
+        "CachePolicyConfig": {
+          "Name": "meatspace-chat-cache-policy",
+          "DefaultTTL": 86400,
+          "MaxTTL": 31536000,
+          "MinTTL": 0,
+          "ParametersInCacheKeyAndForwardedToOrigin": {
+            "EnableAcceptEncodingGzip": true,
+            "EnableAcceptEncodingBrotli": true,
+            "HeadersConfig": {
+              "HeaderBehavior": "whitelist",
+              "Headers": [
+                "Authorization",
+                "Sec-WebSocket-Key",
+                "Sec-WebSocket-Version",
+                "Sec-WebSocket-Protocol",
+                "Sec-WebSocket-Accept",
+                "Sec-WebSocket-Extensions"
+              ]
+            },
+            "CookiesConfig": {
+              "CookieBehavior": "none"
+            },
+            "QueryStringsConfig": {
+              "QueryStringBehavior": "none"
+            }
+          }
+        }
+      }
+    },
     "CDN": {
       "Type": "AWS::CloudFront::Distribution",
       "Properties": {
@@ -814,11 +863,11 @@
           ],
           "DefaultCacheBehavior": {
             "TargetOriginId": "HttpEdgeOrigin",
-            "ForwardedValues": {
-              "QueryString": true,
-              "Cookies": {
-                "Forward": "all"
-              }
+            "OriginRequestPolicyId": {
+              "Ref": "OriginRequestPolicy"
+            },
+            "CachePolicyId": {
+              "Ref": "CachePolicy"
             },
             "ViewerProtocolPolicy": "redirect-to-https",
             "MinTTL": 0,
@@ -844,11 +893,11 @@
             {
               "TargetOriginId": "WssEdgeOrigin",
               "PathPattern": "/_wss/*",
-              "ForwardedValues": {
-                "QueryString": true,
-                "Cookies": {
-                  "Forward": "all"
-                }
+              "OriginRequestPolicyId": {
+                "Ref": "OriginRequestPolicy"
+              },
+              "CachePolicyId": {
+                "Ref": "CachePolicy"
               },
               "ViewerProtocolPolicy": "allow-all",
               "MinTTL": 0,
