@@ -91,7 +91,12 @@ export let deploy = {
         AutoPublish: true,
         FunctionCode: `
           function handler (event) {
-            event.request.uri = event.request.uri.replace(/_wss?\//, '');
+            var request = event.request
+            var uri = request.uri.replace('/_wss', '');
+            if (uri[uri.length - 1] === '/') {
+              uri = uri.substr(0, uri.length - 1)
+            }
+            request.uri = uri
             return request;
           }
         `,
