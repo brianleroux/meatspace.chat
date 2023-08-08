@@ -33,6 +33,7 @@ export let deploy = {
     // create apig mapping
     cloudformation.Resources.Mapping = {
       Type : "AWS::ApiGatewayV2::ApiMapping",
+      DependsOn: 'HTTP',
       Properties : {
         Stage: '$default',
         DomainName : domain,
@@ -83,6 +84,23 @@ export let deploy = {
       }
     }
 
+    cloudformation.Resources.RequestFunction = {
+      Type: 'AWS::CloudFront::Function',
+      Properties: {
+        Name: domain.replace('.', '-') + '-request-function',
+        AutoPublish: true,
+        FunctionCode: `
+          function handler (event) {
+            event.request.uri = event.request.uri.replace(/_wss?\//, '');
+            return request;
+          }
+        `,
+        FunctionConfig: {
+          Comment: 'function to remove trailing _wss from the request uri',
+          Runtime: 'cloudfront-js-1.0'
+        },
+      }
+    }
 
     // create cloudfront distribution
     cloudformation.Resources.CDN = {
@@ -147,13 +165,15 @@ export let deploy = {
           CacheBehaviors: [{
             TargetOriginId: 'WssEdgeOrigin',
             PathPattern: '/_wss/*',
-            /*
-            ForwardedValues: {
-              QueryString: true,
-              Cookies: { Forward: 'all' },
-            },*/
-            OriginRequestPolicyId: { Ref: 'OriginRequestPolicy' },
-            CachePolicyId: { Ref: 'CachePolicy' },
+            // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-origin-request-policies.html#managed-origin-request-policy-all-viewer-except-host-header
+            OriginRequestPolicyId: 'b689b0a8-53d0-40ab-baf2-68738e2966ac', 
+            // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html#managed-cache-policy-caching-disabled
+            CachePolicyId: '4135ea2d-6df8-44a3-9df3-4b5a84be39ad',
+
+            FunctionAssociations: [{
+              EventType: 'viewer-request',
+              FunctionARN: {'Fn::GetAtt': ['RequestFunction', 'FunctionMetadata.FunctionARN']}
+            }],
             ViewerProtocolPolicy: 'allow-all',
             MinTTL: 0,
             AllowedMethods: [ 'HEAD', 'DELETE', 'POST', 'GET', 'OPTIONS', 'PUT', 'PATCH' ],

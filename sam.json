@@ -1,7 +1,7 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Transform": "AWS::Serverless-2016-10-31",
-  "Description": "Exported by architect/package@8.5.0 on 2023-08-02T19:50:24.921Z",
+  "Description": "Exported by architect/package@8.5.0 on 2023-08-08T17:08:35.081Z",
   "Resources": {
     "Role": {
       "Type": "AWS::IAM::Role",
@@ -745,6 +745,7 @@
     },
     "Mapping": {
       "Type": "AWS::ApiGatewayV2::ApiMapping",
+      "DependsOn": "HTTP",
       "Properties": {
         "Stage": "$default",
         "DomainName": "meatspace.chat",
@@ -799,6 +800,18 @@
               "QueryStringBehavior": "none"
             }
           }
+        }
+      }
+    },
+    "RequestFunction": {
+      "Type": "AWS::CloudFront::Function",
+      "Properties": {
+        "Name": "meatspace-chat-request-function",
+        "AutoPublish": true,
+        "FunctionCode": "\n          function handler (event) {\n            event.request.uri = event.request.uri.replace(/_wss?//, '');\n            return request;\n          }\n        ",
+        "FunctionConfig": {
+          "Comment": "function to remove trailing _wss from the request uri",
+          "Runtime": "cloudfront-js-1.0"
         }
       }
     },
@@ -893,12 +906,19 @@
             {
               "TargetOriginId": "WssEdgeOrigin",
               "PathPattern": "/_wss/*",
-              "OriginRequestPolicyId": {
-                "Ref": "OriginRequestPolicy"
-              },
-              "CachePolicyId": {
-                "Ref": "CachePolicy"
-              },
+              "OriginRequestPolicyId": "b689b0a8-53d0-40ab-baf2-68738e2966ac",
+              "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
+              "FunctionAssociations": [
+                {
+                  "EventType": "viewer-request",
+                  "FunctionARN": {
+                    "Fn::GetAtt": [
+                      "RequestFunction",
+                      "FunctionMetadata.FunctionARN"
+                    ]
+                  }
+                }
+              ],
               "ViewerProtocolPolicy": "allow-all",
               "MinTTL": 0,
               "AllowedMethods": [
