@@ -151,11 +151,6 @@ export let deploy = {
           }],
           DefaultCacheBehavior: {
             TargetOriginId: 'HttpEdgeOrigin',
-            /*
-            ForwardedValues: {
-              QueryString: true,
-              Cookies: { Forward: 'all' },
-            },*/
             OriginRequestPolicyId: { Ref: 'OriginRequestPolicy' },
             CachePolicyId: { Ref: 'CachePolicy' },
             ViewerProtocolPolicy: 'redirect-to-https',
@@ -173,7 +168,7 @@ export let deploy = {
             // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-origin-request-policies.html#managed-origin-request-policy-all-viewer-except-host-header
             OriginRequestPolicyId: 'b689b0a8-53d0-40ab-baf2-68738e2966ac', 
             // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html#managed-cache-policy-caching-disabled
-            CachePolicyId: '4135ea2d-6df8-44a3-9df3-4b5a84be39ad',
+            CachePolicyId: { Ref: 'CachePolicy' },//'4135ea2d-6df8-44a3-9df3-4b5a84be39ad',
 
             FunctionAssociations: [{
               EventType: 'viewer-request',
