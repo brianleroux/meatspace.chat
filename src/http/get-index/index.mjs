@@ -12,7 +12,7 @@ export async function handler (req) {
 <main>Loading...</main>
 <input id=message type=text placeholder="Enter message" autofocus>
 <script>
-window.WS_URL = 'wss://meatspace.chat/_wss/'
+window.WS_URL = 'wss://b391n.com/_wss/'
 </script>
 <script type=module src="/_static/index.mjs"></script>
 </body>
