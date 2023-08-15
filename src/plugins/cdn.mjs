@@ -21,7 +21,7 @@ export let deploy = {
 
     // create an apig domain
     cloudformation.Resources.Domain = {
-      Type : "AWS::ApiGatewayV2::DomainName",
+      Type : 'AWS::ApiGatewayV2::DomainName',
       Properties : {
         DomainName : domain,
         DomainNameConfigurations: [{
@@ -32,8 +32,8 @@ export let deploy = {
 
     // create apig mapping
     cloudformation.Resources.Mapping = {
-      Type : "AWS::ApiGatewayV2::ApiMapping",
-      DependsOn: 'HTTP',
+      Type : 'AWS::ApiGatewayV2::ApiMapping',
+      DependsOn: 'HTTP', // you'd think this wasn't neccessary but it is
       Properties : {
         Stage: '$default',
         DomainName : domain,
@@ -43,7 +43,7 @@ export let deploy = {
 
     // create origin request policy
     cloudformation.Resources.OriginRequestPolicy = {
-      Type: "AWS::CloudFront::OriginRequestPolicy",
+      Type: 'AWS::CloudFront::OriginRequestPolicy',
       Properties: {
         OriginRequestPolicyConfig: {
           Name: domain.replace('.', '-') + '-origin-request-policy',
@@ -56,7 +56,7 @@ export let deploy = {
 
     // create a cache policy for our cloudfront distribution
     cloudformation.Resources.CachePolicy = {
-      Type: "AWS::CloudFront::CachePolicy",
+      Type: 'AWS::CloudFront::CachePolicy',
       Properties: {
         CachePolicyConfig: {
           Name: domain.replace('.', '-') + '-cache-policy',
@@ -135,8 +135,8 @@ export let deploy = {
           }, {
             Id: 'WssEdgeOrigin',
             DomainName: {
-              "Fn::Sub": [
-                "${WS}.execute-api.${AWS::Region}.amazonaws.com",
+              'Fn::Sub': [
+                '${WS}.execute-api.${AWS::Region}.amazonaws.com',
               {}]
             },
             OriginPath: '/' + stage,
