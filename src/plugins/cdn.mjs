@@ -1,4 +1,5 @@
 export let deploy = { 
+
   start ({ arc, cloudformation, dryRun, inventory, stage }) {
 
     // pull config from app.arc @dns pramga
@@ -48,7 +49,36 @@ export let deploy = {
         OriginRequestPolicyConfig: {
           Name: domain.replace('.', '-') + '-origin-request-policy',
           CookiesConfig: { CookieBehavior: 'all' },
-          HeadersConfig: { HeaderBehavior: 'allViewer' },
+          HeadersConfig: { HeaderBehavior: 'allViewer' }, 
+          QueryStringsConfig: { QueryStringBehavior: 'all' }
+        }
+      }
+    }
+
+    // create origin request policy
+    cloudformation.Resources.WssOriginRequestPolicy = {
+      Type: 'AWS::CloudFront::OriginRequestPolicy',
+      Properties: {
+        OriginRequestPolicyConfig: {
+          Name: domain.replace('.', '-') + '-wss-origin-request-policy',
+          CookiesConfig: {
+            CookieBehavior: 'whitelist',
+            Cookies: ['_idx']
+          },
+          HeadersConfig: {
+            HeaderBehavior: 'whitelist', 
+            Headers: [
+              //'Authorization', 
+              // 'Cookie',
+              // 'Set-Cookie',
+              // 'Host', 
+              'Sec-WebSocket-Key',
+              'Sec-WebSocket-Version',
+              'Sec-WebSocket-Protocol',
+              'Sec-WebSocket-Accept',
+              'Sec-WebSocket-Extensions' 
+            ]
+          },
           QueryStringsConfig: { QueryStringBehavior: 'all' }
         }
       }
@@ -92,11 +122,9 @@ export let deploy = {
         FunctionCode: `
           function handler (event) {
             var request = event.request
-            var uri = request.uri.replace('/_wss', '');
-            if (uri[uri.length - 1] === '/') {
-              uri = uri.substr(0, uri.length - 1)
-            }
-            request.uri = uri
+            request.uri = '/staging'
+            // console.log(request)
+            // request.headers.host = { value: 'tfay9fw64d.execute-api.us-east-1.amazonaws.com' }
             return request;
           }
         `,
@@ -166,7 +194,7 @@ export let deploy = {
             TargetOriginId: 'WssEdgeOrigin',
             PathPattern: '/_wss/*',
             // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-origin-request-policies.html#managed-origin-request-policy-all-viewer-except-host-header
-            OriginRequestPolicyId: 'b689b0a8-53d0-40ab-baf2-68738e2966ac', 
+            OriginRequestPolicyId: { Ref: 'WssOriginRequestPolicy' },// 'b689b0a8-53d0-40ab-baf2-68738e2966ac', 
             // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html#managed-cache-policy-caching-disabled
             CachePolicyId: { Ref: 'CachePolicy' },//'4135ea2d-6df8-44a3-9df3-4b5a84be39ad',
 
