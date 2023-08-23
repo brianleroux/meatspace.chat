@@ -121,10 +121,10 @@ export let deploy = {
         AutoPublish: true,
         FunctionCode: `
           function handler (event) {
-            var request = event.request
-            request.uri = '/staging'
-            // console.log(request)
-            // request.headers.host = { value: 'tfay9fw64d.execute-api.us-east-1.amazonaws.com' }
+            var request = event.request;
+            request.uri = '/staging';
+            // console.log(request);
+            // request.headers.host = { value: 'tfay9fw64d.execute-api.us-east-1.amazonaws.com' };
             return request;
           }
         `,
@@ -167,7 +167,7 @@ export let deploy = {
                 '${WS}.execute-api.${AWS::Region}.amazonaws.com',
               {}]
             },
-            OriginPath: '/' + stage,
+            // OriginPath: '/' + stage,
             CustomOriginConfig: {
               HTTPPort: 80,
               HTTPSPort: 443,

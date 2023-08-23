@@ -1,7 +1,7 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Transform": "AWS::Serverless-2016-10-31",
-  "Description": "Exported by architect/package@8.5.0 on 2023-08-22T21:47:34.046Z",
+  "Description": "Exported by architect/package@8.5.0 on 2023-08-23T18:08:49.742Z",
   "Resources": {
     "Role": {
       "Type": "AWS::IAM::Role",
@@ -74,8 +74,65 @@
                 }
               ]
             }
+          },
+          {
+            "PolicyName": "ArcDynamoPolicy",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "dynamodb:*",
+                  "Resource": [
+                    {
+                      "Fn::Sub": [
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${tablename}",
+                        {
+                          "tablename": {
+                            "Ref": "DataTable"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "Fn::Sub": [
+                        "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${tablename}/*",
+                        {
+                          "tablename": {
+                            "Ref": "DataTable"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Deny",
+                  "Action": "dynamodb:DeleteTable",
+                  "Resource": {
+                    "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/*"
+                  }
+                }
+              ]
+            }
           }
         ]
+      }
+    },
+    "DataParam": {
+      "Type": "AWS::SSM::Parameter",
+      "Properties": {
+        "Type": "String",
+        "Name": {
+          "Fn::Sub": [
+            "/${AWS::StackName}/tables/${tablename}",
+            {
+              "tablename": "data"
+            }
+          ]
+        },
+        "Value": {
+          "Ref": "DataTable"
+        }
       }
     },
     "StaticBucketParam": {
@@ -188,6 +245,17 @@
                   },
                   "connectionType": "INTERNET"
                 }
+              },
+              "post": {
+                "x-amazon-apigateway-integration": {
+                  "payloadFormatVersion": "2.0",
+                  "type": "aws_proxy",
+                  "httpMethod": "POST",
+                  "uri": {
+                    "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PostIndexHTTPLambda.Arn}/invocations"
+                  },
+                  "connectionType": "INTERNET"
+                }
               }
             },
             "/_static/{proxy+}": {
@@ -280,6 +348,102 @@
         "name": "get /",
         "method": "get",
         "path": "/"
+      }
+    },
+    "PostIndexHTTPLambda": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "index.handler",
+        "CodeUri": "/Users/brian/Repo/arc-example-wss/src/http/post-index",
+        "Runtime": "nodejs16.x",
+        "Architectures": [
+          "arm64"
+        ],
+        "MemorySize": 1152,
+        "EphemeralStorage": {
+          "Size": 512
+        },
+        "Timeout": 5,
+        "Environment": {
+          "Variables": {
+            "ARC_APP_NAME": "arc-example-wss",
+            "ARC_ENV": "staging",
+            "ARC_ROLE": {
+              "Ref": "Role"
+            },
+            "ARC_SESSION_TABLE_NAME": "jwe",
+            "ARC_STACK_NAME": {
+              "Ref": "AWS::StackName"
+            },
+            "ARC_STATIC_BUCKET": {
+              "Ref": "StaticBucket"
+            },
+            "ARC_WSS_URL": {
+              "Fn::Sub": [
+                "wss://${WS}.execute-api.${AWS::Region}.amazonaws.com/staging",
+                {}
+              ]
+            }
+          }
+        },
+        "Role": {
+          "Fn::Sub": [
+            "arn:aws:iam::${AWS::AccountId}:role/${roleName}",
+            {
+              "roleName": {
+                "Ref": "Role"
+              }
+            }
+          ]
+        },
+        "Events": {
+          "PostIndexHTTPEvent": {
+            "Type": "HttpApi",
+            "Properties": {
+              "Path": "/",
+              "Method": "POST",
+              "ApiId": {
+                "Ref": "HTTP"
+              }
+            }
+          }
+        }
+      },
+      "ArcMetadata": {
+        "pragma": "http",
+        "name": "post /",
+        "method": "post",
+        "path": "/"
+      }
+    },
+    "DataTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "KeySchema": [
+          {
+            "AttributeName": "scopeID",
+            "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "dataID",
+            "KeyType": "RANGE"
+          }
+        ],
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "scopeID",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "dataID",
+            "AttributeType": "S"
+          }
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "TimeToLiveSpecification": {
+          "AttributeName": "ttl",
+          "Enabled": true
+        }
       }
     },
     "StaticBucket": {
@@ -835,7 +999,7 @@
       "Properties": {
         "Name": "b391n-com-request-function",
         "AutoPublish": true,
-        "FunctionCode": "\n          function handler (event) {\n            var request = event.request\n            request.uri = '/staging'\n            // console.log(request)\n            // request.headers.host = { value: 'tfay9fw64d.execute-api.us-east-1.amazonaws.com' }\n            return request;\n          }\n        ",
+        "FunctionCode": "\n          function handler (event) {\n            var request = event.request;\n            request.uri = '/staging';\n            // console.log(request);\n            // request.headers.host = { value: 'tfay9fw64d.execute-api.us-east-1.amazonaws.com' };\n            return request;\n          }\n        ",
         "FunctionConfig": {
           "Comment": "function to remove trailing _wss from the request uri",
           "Runtime": "cloudfront-js-1.0"
@@ -886,7 +1050,6 @@
                   {}
                 ]
               },
-              "OriginPath": "/staging",
               "CustomOriginConfig": {
                 "HTTPPort": 80,
                 "HTTPSPort": 443,

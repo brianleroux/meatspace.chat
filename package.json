@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "start": "sandbox",
+    "deploy": "arc-deploy"
+  },
+  "dependencies": {
+    "@architect/deploy": "^4.6.1",
+    "@architect/functions": "^7.0.0",
+    "@architect/sandbox": "^5.8.0",
+    "@begin/data": "^4.0.2"
+  }
+}

@@ -14,6 +14,13 @@ cdn
 @ws
 @http
 get /
+post /
+
+@tables
+data
+  scopeID *
+  dataID **
+  ttl TTL
 
 @aws
 profile begin #brian
