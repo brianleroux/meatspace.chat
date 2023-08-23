@@ -3,6 +3,8 @@ import data from '@begin/data'
 
 export async function handler (event) {
 
+  console.log(event)
+
   // get the sender and their message
   let table = 'connections'
   let key = event.requestContext.connectionId

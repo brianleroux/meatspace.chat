@@ -1,7 +1,7 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Transform": "AWS::Serverless-2016-10-31",
-  "Description": "Exported by architect/package@8.5.0 on 2023-08-23T18:08:49.742Z",
+  "Description": "Exported by architect/package@8.5.0 on 2023-08-23T18:53:31.079Z",
   "Resources": {
     "Role": {
       "Type": "AWS::IAM::Role",
@@ -258,6 +258,19 @@
                 }
               }
             },
+            "/reset": {
+              "post": {
+                "x-amazon-apigateway-integration": {
+                  "payloadFormatVersion": "2.0",
+                  "type": "aws_proxy",
+                  "httpMethod": "POST",
+                  "uri": {
+                    "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PostResetHTTPLambda.Arn}/invocations"
+                  },
+                  "connectionType": "INTERNET"
+                }
+              }
+            },
             "/_static/{proxy+}": {
               "get": {
                 "x-amazon-apigateway-integration": {
@@ -348,6 +361,72 @@
         "name": "get /",
         "method": "get",
         "path": "/"
+      }
+    },
+    "PostResetHTTPLambda": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "index.handler",
+        "CodeUri": "/Users/brian/Repo/arc-example-wss/src/http/post-reset",
+        "Runtime": "nodejs16.x",
+        "Architectures": [
+          "arm64"
+        ],
+        "MemorySize": 1152,
+        "EphemeralStorage": {
+          "Size": 512
+        },
+        "Timeout": 5,
+        "Environment": {
+          "Variables": {
+            "ARC_APP_NAME": "arc-example-wss",
+            "ARC_ENV": "staging",
+            "ARC_ROLE": {
+              "Ref": "Role"
+            },
+            "ARC_SESSION_TABLE_NAME": "jwe",
+            "ARC_STACK_NAME": {
+              "Ref": "AWS::StackName"
+            },
+            "ARC_STATIC_BUCKET": {
+              "Ref": "StaticBucket"
+            },
+            "ARC_WSS_URL": {
+              "Fn::Sub": [
+                "wss://${WS}.execute-api.${AWS::Region}.amazonaws.com/staging",
+                {}
+              ]
+            }
+          }
+        },
+        "Role": {
+          "Fn::Sub": [
+            "arn:aws:iam::${AWS::AccountId}:role/${roleName}",
+            {
+              "roleName": {
+                "Ref": "Role"
+              }
+            }
+          ]
+        },
+        "Events": {
+          "PostResetHTTPEvent": {
+            "Type": "HttpApi",
+            "Properties": {
+              "Path": "/reset",
+              "Method": "POST",
+              "ApiId": {
+                "Ref": "HTTP"
+              }
+            }
+          }
+        }
+      },
+      "ArcMetadata": {
+        "pragma": "http",
+        "name": "post /reset",
+        "method": "post",
+        "path": "/reset"
       }
     },
     "PostIndexHTTPLambda": {
