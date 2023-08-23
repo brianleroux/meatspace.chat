@@ -15,6 +15,7 @@ cdn
 @http
 get /
 post /
+post /reset
 
 @tables
 data

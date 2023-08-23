@@ -11,19 +11,26 @@ async function fn (req) {
 <main>Loading...</main>
 <input id=message type=text placeholder="Enter message" autofocus>
 
+<hr>
+
 <form action="/" method="GET">
   <label for="foo">foo:</label>
-	<input type="text" name="foo" value="bar" placeholder="bar" />
-	<button type="submit">GET</button>
+	<input type=text name=foo value=bar placeholder=bar>
+	<button>GET</button>
 </form>
 
+<hr> 
+
 <div>
-<p>This counter increments with each page load.</p>
-		<pre><code>count: ${req.session.count || 0}</code></pre>
-    <form method=post action=/><button>+1</button></form>
+  <p>This counter increments with each page load.</p>
+	<pre><code>count: ${req.session.count || 0}</code></pre>
+  <form method=post action=/>
+    <button>+1</button>
+    <input type=submit formaction=/reset value=reset>
+  </form>
 </div>
 
-
+<hr>
 
 <pre><code>${JSON.stringify(req, null, 2)}</code></pre>
 <script>
