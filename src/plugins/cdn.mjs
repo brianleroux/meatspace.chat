@@ -1,6 +1,6 @@
-export let deploy = { 
+export let deploy = {
 
-  start ({ arc, cloudformation, dryRun, inventory, stage }) {
+  start ({ arc, cloudformation, stage }) {
 
     // pull config from app.arc @dns pramga
     let domain = arc.dns[0][1]
@@ -22,22 +22,22 @@ export let deploy = {
 
     // create an apig domain
     cloudformation.Resources.Domain = {
-      Type : 'AWS::ApiGatewayV2::DomainName',
-      Properties : {
-        DomainName : domain,
-        DomainNameConfigurations: [{
+      Type: 'AWS::ApiGatewayV2::DomainName',
+      Properties: {
+        DomainName: domain,
+        DomainNameConfigurations: [ {
           CertificateArn: { Ref: 'Certificate' }
-        }]
+        } ]
       }
     }
 
     // create apig mapping
     cloudformation.Resources.Mapping = {
-      Type : 'AWS::ApiGatewayV2::ApiMapping',
+      Type: 'AWS::ApiGatewayV2::ApiMapping',
       DependsOn: 'HTTP', // you'd think this wasn't neccessary but it is
-      Properties : {
+      Properties: {
         Stage: '$default',
-        DomainName : domain,
+        DomainName: domain,
         ApiId: { Ref: 'HTTP' }
       }
     }
@@ -49,7 +49,7 @@ export let deploy = {
         OriginRequestPolicyConfig: {
           Name: domain.replace('.', '-') + '-origin-request-policy',
           CookiesConfig: { CookieBehavior: 'all' },
-          HeadersConfig: { HeaderBehavior: 'allViewer' }, 
+          HeadersConfig: { HeaderBehavior: 'allViewer' },
           QueryStringsConfig: { QueryStringBehavior: 'all' }
         }
       }
@@ -63,20 +63,20 @@ export let deploy = {
           Name: domain.replace('.', '-') + '-wss-origin-request-policy',
           CookiesConfig: {
             CookieBehavior: 'whitelist',
-            Cookies: ['_idx']
+            Cookies: [ '_idx' ]
           },
           HeadersConfig: {
-            HeaderBehavior: 'whitelist', 
+            HeaderBehavior: 'whitelist',
             Headers: [
-              //'Authorization', 
+              // 'Authorization',
               // 'Cookie',
               // 'Set-Cookie',
-              // 'Host', 
+              // 'Host',
               'Sec-WebSocket-Key',
               'Sec-WebSocket-Version',
               'Sec-WebSocket-Protocol',
               'Sec-WebSocket-Accept',
-              'Sec-WebSocket-Extensions' 
+              'Sec-WebSocket-Extensions'
             ]
           },
           QueryStringsConfig: { QueryStringBehavior: 'all' }
@@ -98,14 +98,14 @@ export let deploy = {
             EnableAcceptEncodingBrotli: true,
             HeadersConfig: {
               HeaderBehavior: 'whitelist',
-              Headers:  [ 
-                'Authorization', 
+              Headers:  [
+                'Authorization',
                 'Sec-WebSocket-Key',
                 'Sec-WebSocket-Version',
                 'Sec-WebSocket-Protocol',
                 'Sec-WebSocket-Accept',
-                'Sec-WebSocket-Extensions' 
-              ] 
+                'Sec-WebSocket-Extensions'
+              ]
             },
             CookiesConfig: { CookieBehavior: 'none' },
             QueryStringsConfig: { QueryStringBehavior: 'none' },
@@ -122,9 +122,7 @@ export let deploy = {
         FunctionCode: `
           function handler (event) {
             var request = event.request;
-            request.uri = '/staging';
-            // console.log(request);
-            // request.headers.host = { value: 'tfay9fw64d.execute-api.us-east-1.amazonaws.com' };
+            request.uri = '/${stage}';
             return request;
           }
         `,
@@ -144,7 +142,7 @@ export let deploy = {
           HttpVersion: 'http2',
           IPV6Enabled: true,
           Enabled: true,
-          Origins: [{
+          Origins: [ {
             Id: 'HttpEdgeOrigin',
             DomainName: {
               'Fn::Sub': [
@@ -165,7 +163,7 @@ export let deploy = {
             DomainName: {
               'Fn::Sub': [
                 '${WS}.execute-api.${AWS::Region}.amazonaws.com',
-              {}]
+                {} ]
             },
             // OriginPath: '/' + stage,
             CustomOriginConfig: {
@@ -176,7 +174,7 @@ export let deploy = {
               OriginReadTimeout: 30,
               OriginSSLProtocols: [ 'TLSv1', 'TLSv1.1', 'TLSv1.2' ],
             }
-          }],
+          } ],
           DefaultCacheBehavior: {
             TargetOriginId: 'HttpEdgeOrigin',
             OriginRequestPolicyId: { Ref: 'OriginRequestPolicy' },
@@ -190,18 +188,18 @@ export let deploy = {
             MaxTTL: 31536000,
             Compress: true, // Important!
           },
-          CacheBehaviors: [{
+          CacheBehaviors: [ {
             TargetOriginId: 'WssEdgeOrigin',
             PathPattern: '/_wss/*',
             // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-origin-request-policies.html#managed-origin-request-policy-all-viewer-except-host-header
-            OriginRequestPolicyId: { Ref: 'WssOriginRequestPolicy' },// 'b689b0a8-53d0-40ab-baf2-68738e2966ac', 
+            OriginRequestPolicyId: { Ref: 'WssOriginRequestPolicy' }, // 'b689b0a8-53d0-40ab-baf2-68738e2966ac',
             // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html#managed-cache-policy-caching-disabled
-            CachePolicyId: { Ref: 'CachePolicy' },//'4135ea2d-6df8-44a3-9df3-4b5a84be39ad',
+            CachePolicyId: { Ref: 'CachePolicy' }, // '4135ea2d-6df8-44a3-9df3-4b5a84be39ad',
 
-            FunctionAssociations: [{
+            FunctionAssociations: [ {
               EventType: 'viewer-request',
-              FunctionARN: {'Fn::GetAtt': ['RequestFunction', 'FunctionMetadata.FunctionARN']}
-            }],
+              FunctionARN: { 'Fn::GetAtt': [ 'RequestFunction', 'FunctionMetadata.FunctionARN' ] }
+            } ],
             ViewerProtocolPolicy: 'allow-all',
             MinTTL: 0,
             AllowedMethods: [ 'HEAD', 'DELETE', 'POST', 'GET', 'OPTIONS', 'PUT', 'PATCH' ],
@@ -210,7 +208,7 @@ export let deploy = {
             DefaultTTL: 86400,
             MaxTTL: 31536000,
             Compress: true, // Important!
-          }],
+          } ],
           PriceClass: 'PriceClass_All',
           ViewerCertificate: {
             AcmCertificateArn: {
@@ -239,7 +237,7 @@ export let deploy = {
           }
         } ]
       }
-    } 
+    }
 
     return cloudformation
   }

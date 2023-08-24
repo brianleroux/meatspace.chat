@@ -1,7 +1,7 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Transform": "AWS::Serverless-2016-10-31",
-  "Description": "Exported by architect/package@8.5.0 on 2023-08-23T18:53:31.079Z",
+  "Description": "Exported by architect/package@8.5.0 on 2023-08-23T20:28:17.168Z",
   "Resources": {
     "Role": {
       "Type": "AWS::IAM::Role",
@@ -961,14 +961,14 @@
       "Type": "AWS::CertificateManager::Certificate",
       "Properties": {
         "ValidationMethod": "DNS",
-        "DomainName": "b391n.com",
+        "DomainName": "meatspace.chat",
         "SubjectAlternativeNames": [
-          "*.b391n.com"
+          "*.meatspace.chat"
         ],
         "DomainValidationOptions": [
           {
-            "DomainName": "b391n.com",
-            "HostedZoneId": "Z00778763548G9B2UQDPO"
+            "DomainName": "meatspace.chat",
+            "HostedZoneId": "Z02440513BVKWOLBE80NL"
           }
         ]
       }
@@ -976,7 +976,7 @@
     "Domain": {
       "Type": "AWS::ApiGatewayV2::DomainName",
       "Properties": {
-        "DomainName": "b391n.com",
+        "DomainName": "meatspace.chat",
         "DomainNameConfigurations": [
           {
             "CertificateArn": {
@@ -991,7 +991,7 @@
       "DependsOn": "HTTP",
       "Properties": {
         "Stage": "$default",
-        "DomainName": "b391n.com",
+        "DomainName": "meatspace.chat",
         "ApiId": {
           "Ref": "HTTP"
         }
@@ -1001,7 +1001,7 @@
       "Type": "AWS::CloudFront::OriginRequestPolicy",
       "Properties": {
         "OriginRequestPolicyConfig": {
-          "Name": "b391n-com-origin-request-policy",
+          "Name": "meatspace-chat-origin-request-policy",
           "CookiesConfig": {
             "CookieBehavior": "all"
           },
@@ -1018,7 +1018,7 @@
       "Type": "AWS::CloudFront::OriginRequestPolicy",
       "Properties": {
         "OriginRequestPolicyConfig": {
-          "Name": "b391n-com-wss-origin-request-policy",
+          "Name": "meatspace-chat-wss-origin-request-policy",
           "CookiesConfig": {
             "CookieBehavior": "whitelist",
             "Cookies": [
@@ -1045,7 +1045,7 @@
       "Type": "AWS::CloudFront::CachePolicy",
       "Properties": {
         "CachePolicyConfig": {
-          "Name": "b391n-com-cache-policy",
+          "Name": "meatspace-chat-cache-policy",
           "DefaultTTL": 86400,
           "MaxTTL": 31536000,
           "MinTTL": 0,
@@ -1076,9 +1076,9 @@
     "RequestFunction": {
       "Type": "AWS::CloudFront::Function",
       "Properties": {
-        "Name": "b391n-com-request-function",
+        "Name": "meatspace-chat-request-function",
         "AutoPublish": true,
-        "FunctionCode": "\n          function handler (event) {\n            var request = event.request;\n            request.uri = '/staging';\n            // console.log(request);\n            // request.headers.host = { value: 'tfay9fw64d.execute-api.us-east-1.amazonaws.com' };\n            return request;\n          }\n        ",
+        "FunctionCode": "\n          function handler (event) {\n            var request = event.request;\n            request.uri = '/staging';\n            return request;\n          }\n        ",
         "FunctionConfig": {
           "Comment": "function to remove trailing _wss from the request uri",
           "Runtime": "cloudfront-js-1.0"
@@ -1090,7 +1090,7 @@
       "Properties": {
         "DistributionConfig": {
           "Aliases": [
-            "b391n.com"
+            "meatspace.chat"
           ],
           "HttpVersion": "http2",
           "IPV6Enabled": true,
@@ -1227,10 +1227,10 @@
     "Alias": {
       "Type": "AWS::Route53::RecordSetGroup",
       "Properties": {
-        "HostedZoneName": "b391n.com.",
+        "HostedZoneName": "meatspace.chat.",
         "RecordSets": [
           {
-            "Name": "b391n.com.",
+            "Name": "meatspace.chat.",
             "Type": "A",
             "AliasTarget": {
               "HostedZoneId": "Z2FDTNDATAQYW2",

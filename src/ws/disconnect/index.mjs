@@ -1,4 +1,3 @@
-import arc from '@architect/functions'
 import data from '@begin/data'
 
 // clean up bad connections

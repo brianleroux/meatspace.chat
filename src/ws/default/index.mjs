@@ -9,18 +9,18 @@ export async function handler (event) {
   let table = 'connections'
   let key = event.requestContext.connectionId
   let sender = await data.get({ table, key })
-  let message = JSON.parse(event.body) 
+  let message = JSON.parse(event.body)
 
   // send to all connections 25 at a time
   let pages = data.page({ table, limit: 25 })
-  
+
   for await (let connections of pages) {
     for (let connection of connections) {
       try {
-        await arc.ws.send({ 
-          id: connection.key, 
+        await arc.ws.send({
+          id: connection.key,
           payload: {
-            account: sender.account, 
+            account: sender.account,
             text: message.text
           }
         })

@@ -2,10 +2,8 @@
 arc-example-wss
 
 @dns
-domain b391n.com
-zone Z00778763548G9B2UQDPO
-#domain meatspace.chat
-#zone Z02440513BVKWOLBE80NL
+domain meatspace.chat
+zone Z02440513BVKWOLBE80NL
 
 @plugins
 cdn
@@ -14,8 +12,12 @@ cdn
 @ws
 @http
 get /
-post /
-post /reset
+# auth
+get /login
+post /logout
+# chat
+get /channels/:key
+get /invites/:key
 
 @tables
 data
@@ -24,6 +26,6 @@ data
   ttl TTL
 
 @aws
-profile begin #brian
+profile brian
 region us-east-1
 architecture arm64

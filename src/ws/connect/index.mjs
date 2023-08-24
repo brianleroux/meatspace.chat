@@ -13,8 +13,8 @@ async function fn (req) {
     */
 
   // save the connection if its a good session; scale to zero
-  await data.set({ 
-    table: 'connections', 
+  await data.set({
+    table: 'connections',
     key: req.requestContext.connectionId,
     account: req.session.account,
     ttl: 60 * 60 // 1 hour in seconds

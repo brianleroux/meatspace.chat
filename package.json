@@ -1,12 +1,21 @@
 {
   "scripts": {
     "start": "sandbox",
-    "deploy": "arc-deploy"
+    "deploy": "arc-deploy",
+    "lint": "eslint src --fix"
+  },
+  "eslintConfig": {
+    "extends": "@architect/eslint-config"
   },
   "dependencies": {
     "@architect/deploy": "^4.6.1",
     "@architect/functions": "^7.0.0",
     "@architect/sandbox": "^5.8.0",
-    "@begin/data": "^4.0.2"
+    "@begin/data": "^4.0.2",
+    "tiny-json-http": "^7.5.1"
+  },
+  "devDependencies": {
+    "@architect/eslint-config": "^2.1.1",
+    "eslint": "^8.47.0"
   }
 }

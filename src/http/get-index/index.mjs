@@ -1,41 +1,28 @@
 import arc from '@architect/functions'
+// import channels from '@architect/shared/channels.mjs'
 
-export let handler = arc.http.async(fn)
-
-async function fn (req) {
-  return {
-    html: `<!doctype html>
-<html>
-<body>
-
-<h1>Query strings demo</h1>
-<form action="/" method="GET">
-  <label for="foo">foo:</label>
-	<input type=text name=foo value=bar placeholder=bar>
-	<button>GET</button>
-</form>
-
-<hr> 
-
-<h1>Forms and session demo</h1>
-<p>This counter increments with each page load.</p>
-<pre><code>count: ${req.session.count || 0}</code></pre>
-<form method=post action=/>
-  <button>+1</button>
-  <input type=submit formaction=/reset value=reset>
-</form>
-
-<hr>
-
-<h1>Web sockets echo demo</h1>
-<main>Loading...</main>
-<input id=message type=text placeholder="Enter message" autofocus>
-<pre><code>${JSON.stringify(req, null, 2)}</code></pre>
-<script>
-window.WS_URL = 'wss://b391n.com/_wss/'
-</script>
-<script type=module src="/_static/index.mjs"></script>
-</body>
-</html>`
+async function auth (req) {
+  let account = req.session.account
+  if (account) {
+    // TODO get their channels
   }
+}
+
+async function index (req) {
+  let body = login(req.query.invite)
+  let html = `<!doctype html><html><body>${body}</body></html>`
+  return { html }
+}
+
+export let handler = arc.http(auth, index)
+
+// helper for rendering 'sign in with github'
+function login (invite) {
+  let base = `https://github.com/login/oauth/authorize`
+  let client_id = process.env.GITHUB_CLIENT_ID
+  let redirect_uri = process.env.GITHUB_REDIRECT
+  let href = `${base}?client_id=${client_id}&redirect_uri=${redirect_uri}&scope=user`
+  if (invite)
+    href += `&state=${invite}`
+  return `<a href=${href}>Sign in with Github</a>`
 }
