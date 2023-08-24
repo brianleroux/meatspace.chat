@@ -1,49 +1,49 @@
-// learn more about HTTP functions here: https://arc.codes/http
-export async function handler () {
+import arc from '@architect/functions'
+import notfound from './notfound.mjs'
+import channels from '@architect/shared/channels.mjs'
+
+// use built-in architect middleware
+export let handler = arc.http(auth, chat)
+
+/** ensure session.account and valid channel */
+async function auth (req) {
+  if (req.session.account) {
+    let key = req.params.key
+    let channel = await channels.read({ key })
+    if (channel) {
+      req.channel = channel
+    }
+    else {
+      return {
+        code: 404,
+        html: notfound(key)
+      }
+    }
+  }
+  else {
+    return {
+      location: '/'
+    }
+  }
+}
+
+/** render channel interface */
+async function chat (req) {
+  const account = req.session.account
+  const channel = req.channel
+  const invite = `https://meatspace.chat?invite=${channel.key}`
   return {
-    statusCode: 200,
-    headers: {
-      'cache-control': 'no-cache, no-store, must-revalidate, max-age=0, s-maxage=0',
-      'content-type': 'text/html; charset=utf8'
-    },
-    body: `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Architect</title>
-  <style>
-     * { margin: 0; padding: 0; box-sizing: border-box; } body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; } .max-width-320 { max-width: 20rem; } .margin-left-8 { margin-left: 0.5rem; } .margin-bottom-16 { margin-bottom: 1rem; } .margin-bottom-8 { margin-bottom: 0.5rem; } .padding-32 { padding: 2rem; } .color-grey { color: #333; } .color-black-link:hover { color: black; } 
-  </style>
-</head>
-<body class="padding-32">
-  <div class="max-width-320">
-    <img src="https://assets.arc.codes/logo.svg" />
-    <div class="margin-left-8">
-      <div class="margin-bottom-16">
-        <h1 class="margin-bottom-16">
-          Hello from an Architect Node.js function!
-        </h1>
-        <p class="margin-bottom-8">
-          Get started by editing this file at:
-        </p>
-        <code>
-          src/http/get-channel-000key/index.mjs
-        </code>
-      </div>
-      <div>
-        <p class="margin-bottom-8">
-          View documentation at:
-        </p>
-        <code>
-          <a class="color-grey color-black-link" href="https://arc.codes">https://arc.codes</a>
-        </code>
-      </div>
-    </div>
-  </div>
-</body>
-</html>
-`
+    html: `
+      <form action=/logout method=post>
+        <button><img width=40 src=${account.avatar}> Sign out</button>
+      </form>
+      <h1>${channel.name}</h1>
+      <details> 
+        <summary>Invite link</summary>
+        <input type=text value="${invite}">
+      </details>
+      <pre>${JSON.stringify(req, null, 2)}</pre>
+
+    `
   }
 }

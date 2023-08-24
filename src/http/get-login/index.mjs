@@ -9,7 +9,19 @@ async function login (req) {
     // try to login
     let account = await github(req)
     if (account) {
-      let key = await channels.create(account)
+      // find or create a channel for them
+      let key
+      let invite = req.query.state
+      if (invite) {
+        let channel = await channels.read({ key: invite })
+        if (channel) {
+          await channels.join({ channel, account })
+          key = channel.key
+        }
+      }
+      if (!key) {
+        key = await channels.create(account)
+      }
       return {
         session: { account },
         location: `/channels/${key}`

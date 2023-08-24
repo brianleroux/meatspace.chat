@@ -9,15 +9,22 @@ export default {
     let channel = await data.set({
       table,
       name: `${account.login || account.name || 'unknown'}'s channel`,
-      accounts: [ account.id ]
+      account
     })
     // keep track of channels a given account has joined
-    await data.set({
-      table: `${table}:${account.id}`,
-      key: 'channels',
-      channels: [ channel.key ]
-    })
+    await this.join({ account, channel })
     return channel.key
+  },
+
+  /** adds an account to a channel */
+  async join ({ account, channel }) {
+    await data.set([ {
+      table: `${table}:${account.id}`,
+      key:  channel.key
+    }, {
+      table: `${table}:${channel.key}:accounts`,
+      key: account.id
+    } ])
   },
 
   /** read a channel */
@@ -28,14 +35,21 @@ export default {
     // read(account):channel
     if (params.id) {
       let joined = await data.get({
-        table: `${table}:${params.id}`,
-        key: 'channels'
+        table: `${table}:${params.id}`
       })
-      if (joined.channels && joined.channels.length >= 1) {
+      if (joined.length > 0) {
         return data.get({ table, key: joined.channels[0] })
       }
     }
     throw Error('invalid_params')
+  },
+
+  /** list channels given account is in */
+  async list ({ id }) {
+    let res = await data.get({
+      table: `${table}:${id}`
+    })
+    return Array.isArray(res) ? res : []
   },
 
   update () {},
