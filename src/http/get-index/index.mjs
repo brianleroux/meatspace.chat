@@ -21,7 +21,6 @@ async function auth (req) {
   let account = req.session.account
   if (account) {
     let list = await channels.list(account)
-    console.log(list)
     if (list.length) {
       let li = i => `<li><a href=/channels/${i.key}>${i.channel.name}</a></li>`
       return {

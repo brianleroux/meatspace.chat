@@ -1,49 +1,22 @@
 import arc from '@architect/functions'
-import notfound from './notfound.mjs'
-import channels from '@architect/shared/channels.mjs'
-
-// use built-in architect middleware
-export let handler = arc.http(auth, chat)
-
-/** ensure session.account and valid channel */
-async function auth (req) {
-  if (req.session.account) {
-    let key = req.params.key
-    let channel = await channels.find({ key })
-    if (channel) {
-      req.channel = channel
-    }
-    else {
-      return {
-        code: 404,
-        html: notfound(key)
-      }
-    }
-  }
-  else {
-    return {
-      location: '/'
-    }
-  }
-}
+import auth from '@architect/shared/auth-middleware.mjs'
 
 /** render channel interface */
-async function chat (req) {
+export let handler = arc.http(auth, async function chat (req) {
+
+  const testing = process.env.ARC_ENV === 'testing'
+  const endpoint = testing ? process.env.ARC_WSS_URL : 'wss://meatspace.chat/_wss/'
   const account = req.session.account
   const channel = req.channel
   const invite = `https://meatspace.chat?invite=${channel.key}`
-  function sort (a, b) {
-    return new Date(a.created) - new Date(b.created)
-  }
-  function fmt (m) {
+  const messages = channel.messages.map(function fmt (m) {
     return `<article>
       <h3>${m.account.name || m.account.login || 'anon'}</h3>
       <img src="${m.account.avatar}" width=40>
       <p>${m.message}</p><a>${new Date(m.created).toISOString()}</a>
     </article>`
-  }
-  const messages = channel.messages.sort(sort).map(fmt).join('')
-  const wss = process.env.ARC_ENV === 'testing' ? process.env.ARC_WSS_URL : 'wss://meatspace.chat/_wss/'
+  }).join('')
+
   return {
     html: `
       <header>
@@ -70,10 +43,9 @@ async function chat (req) {
       </details>
 
       <script>
-        window.WS_URL = '${wss}'
+        window.WS_URL = '${endpoint}'
       </script>
       <script type=module src=${arc.static('index.mjs')}></script>
-
     `
   }
-}
+})

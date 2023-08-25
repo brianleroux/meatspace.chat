@@ -11,9 +11,11 @@ zone Z02440513BVKWOLBE80NL
 cdn
   src src/plugins/cdn.mjs
 
+# setup an async bg event for broadcasting to channels
 @events
 message-posted
 
+# ensure static asset fingerprinting
 @static
 fingerprint true
 

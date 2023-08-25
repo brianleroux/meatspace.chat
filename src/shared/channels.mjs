@@ -62,11 +62,15 @@ export default {
       if (!meta) return false
       // if we found the channel merge/clean up deep data
       delete meta.table
-      meta.messages = messages.map(m => {
+      function sort (a, b) {
+        return new Date(a.created) - new Date(b.created)
+      }
+      function fmt (m) {
         delete m.table
         delete m.key
         return m
-      })
+      }
+      meta.messages = messages.sort(sort).map(fmt)
       meta.members = members.map(a => a.account)
       return meta
     }
