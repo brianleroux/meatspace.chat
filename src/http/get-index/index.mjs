@@ -2,6 +2,7 @@ import arc from '@architect/functions'
 import link from '@architect/shared/github-signin-link.mjs'
 import channels from '@architect/shared/channels.mjs'
 
+/** if there is an invite code always show invite page */
 async function invite (req) {
   let invite = req.query.invite
   if (invite) {
@@ -15,12 +16,14 @@ async function invite (req) {
   }
 }
 
+/** if no invite code, and authenticated, show list of channels */
 async function auth (req) {
   let account = req.session.account
   if (account) {
     let list = await channels.list(account)
+    console.log(list)
     if (list.length) {
-      let li = i => `<li><a href=/channels/${i.key}>${i.key}</a></li>`
+      let li = i => `<li><a href=/channels/${i.key}>${i.channel.name}</a></li>`
       return {
         html: `
           <h1>${account.login} channels</h1>
@@ -31,6 +34,7 @@ async function auth (req) {
   }
 }
 
+/** if neither invite code or authenticated; invite them to create a channel by signing in */
 async function index () {
   let body = link({})
   let html = `<!doctype html><html><body>${body}</body></html>`

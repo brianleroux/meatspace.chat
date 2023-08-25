@@ -29,7 +29,7 @@ export default async function github (req) {
 
   // create a clean acccount obj
   return {
-    token,
+    // token,
     name: user.body.name,
     login: user.body.login,
     id: user.body.id,

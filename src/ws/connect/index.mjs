@@ -1,24 +1,17 @@
 import arc from '@architect/functions'
-import data from '@begin/data'
+import connections from '@architect/shared/connections.mjs'
 
-export let handler = arc.http.async(fn)
+export let handler = arc.http(connect)
 
-async function fn (req) {
-  console.log(req)
-
-  /*
+async function connect (req) {
   // blow up on bad session
   if (!req.session.account)
     throw Error('invalid session')
-    */
-
-  // save the connection if its a good session; scale to zero
-  await data.set({
-    table: 'connections',
-    key: req.requestContext.connectionId,
-    account: req.session.account,
-    ttl: 60 * 60 // 1 hour in seconds
+  // persist connection info
+  await connections.connect({
+    connectionId: req.requestContext.connectionId,
+    account: req.session.account
   })
-
-  return { statusCode: 200 }
+  // always keep it 200
+  return { code: 200 }
 }

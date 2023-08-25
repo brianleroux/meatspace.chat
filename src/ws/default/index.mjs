@@ -1,10 +1,11 @@
-import arc from '@architect/functions'
-import data from '@begin/data'
+// import arc from '@architect/functions'
+// import data from '@begin/data'
 
 export async function handler (event) {
 
-  console.log(event)
+  console.log('ws default event', event)
 
+  /*
   // get the sender and their message
   let table = 'connections'
   let key = event.requestContext.connectionId
@@ -36,7 +37,7 @@ export async function handler (event) {
         }
       }
     }
-  }
+  }*/
 
   return { statusCode: 200 }
 }

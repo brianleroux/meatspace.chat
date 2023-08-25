@@ -11,6 +11,9 @@ zone Z02440513BVKWOLBE80NL
 cdn
   src src/plugins/cdn.mjs
 
+@events
+message-posted
+
 # enable src/ws/* handlers
 @ws
 
