@@ -82,7 +82,7 @@ export default {
     let res = await data.get({
       table: `${table}:${id}`
     })
-    return Array.isArray(res) ? res : []
+    return Array.isArray(res) ? res.map(c => c.channel) : []
   },
 
   /** post a message to a channel */
@@ -93,6 +93,7 @@ export default {
       created: Date.now(),
       account,
       message,
+      channel,
       ttl
     })
     // let SNS deal with notifying web socket connections

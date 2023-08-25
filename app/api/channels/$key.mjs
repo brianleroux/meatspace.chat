@@ -57,5 +57,5 @@ async function msg (req) {
   }
 }
 
-export let get = [auth, chat]
-export let post = [auth, msg]
+export let get = [ auth, chat ]
+export let post = [ auth, msg ]

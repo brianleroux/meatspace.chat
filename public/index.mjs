@@ -43,15 +43,14 @@ function close () {
 
 // write a message into main
 function message (e) {
+  let channel = window.location.pathname.replace('/channels/', '')
   let m = JSON.parse(e.data)
-  console.log(m)
-  main.innerHTML += `<article>
-    <h3>${m.account.name || m.account.login || 'anon'}</h3>
-    <img src="${m.account.avatar}" width=40>
-    <p>${m.message}</p><a>${new Date(m.created).toISOString()}</a>
-    <details>
-      <summary>Post debug</summary>
-      <pre>${JSON.stringify(m, null, 2)}</pre>
-    </details>
-  </article>`
+  if (m.channel === channel) {
+    main.innerHTML += `<article>
+      <h3>${m.account.name || m.account.login || 'anon'}</h3>
+      <img src="${m.account.avatar}" width=40>
+      <p>${m.message}</p><a>${new Date(m.created).toISOString()}</a>
+    </article>`
+  }
+  else {}
 }

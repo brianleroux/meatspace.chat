@@ -2,23 +2,26 @@
   "scripts": {
     "start": "sandbox",
     "deploy": "arc-deploy",
-    "lint": "eslint src --fix"
+    "lint": "eslint app --fix && eslint bg --fix && eslint shared --fix"
   },
   "eslintConfig": {
-    "extends": "@architect/eslint-config"
+    "extends": "@architect/eslint-config",
+    "rules": {
+      "filenames/match-regex": "off"
+    }
   },
   "dependencies": {
-    "@architect/deploy": "^4.6.1",
     "@architect/functions": "^7.0.0",
     "@architect/sandbox": "^5.8.0",
     "@begin/data": "^4.0.2",
-    "@enhance/arc-plugin-enhance": "^6.2.1",
-    "@enhance/styles-cribsheet": "^0.0.9",
     "markdown-it": "^13.0.1",
     "tiny-json-http": "^7.5.1",
     "xss": "^1.0.14"
   },
   "devDependencies": {
+    "@enhance/styles-cribsheet": "^0.0.9",
+    "@enhance/arc-plugin-enhance": "^6.2.1",
+    "@architect/deploy": "^4.6.1",
     "@architect/eslint-config": "^2.1.1",
     "eslint": "^8.47.0"
   }

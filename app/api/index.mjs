@@ -7,7 +7,7 @@ async function invite (req) {
     let channel = await channels.read({ key: req.query.invite })
     if (channel) {
       let invite = link(req.query.invite)
-      return { 
+      return {
         json: {  invite }
       }
     }
@@ -18,19 +18,19 @@ async function invite (req) {
 async function auth (req) {
   let account = req.session.account
   if (account) {
-    let channels = await list(account)
-    return { 
-      json: { account, channels }
+    let list = await channels.list(account)
+    return {
+      json: { account, channels: list }
     }
   }
 }
 
 /** if neither invite code or authenticated; invite them to create a channel by signing in */
 async function index () {
-  return { 
+  return {
     json: { github: link() }
   }
 }
 
 /** registers middleware to GET / */
-export let get = [invite, auth, index]
+export let get = [ invite, auth, index ]
