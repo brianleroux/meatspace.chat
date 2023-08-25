@@ -12,7 +12,9 @@
     "@architect/functions": "^7.0.0",
     "@architect/sandbox": "^5.8.0",
     "@begin/data": "^4.0.2",
-    "tiny-json-http": "^7.5.1"
+    "markdown-it": "^13.0.1",
+    "tiny-json-http": "^7.5.1",
+    "xss": "^1.0.14"
   },
   "devDependencies": {
     "@architect/eslint-config": "^2.1.1",
