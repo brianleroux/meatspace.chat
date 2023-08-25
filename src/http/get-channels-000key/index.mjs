@@ -72,7 +72,7 @@ async function chat (req) {
       <script>
         window.WS_URL = '${wss}'
       </script>
-      <script type=module src=/_static/index.mjs></script>
+      <script type=module src=${arc.static('index.mjs')}></script>
 
     `
   }
