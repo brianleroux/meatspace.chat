@@ -1,7 +1,7 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Transform": "AWS::Serverless-2016-10-31",
-  "Description": "Exported by architect/package@8.5.0 on 2023-08-23T20:28:17.168Z",
+  "Description": "Exported by architect/package@8.5.2 on 2023-08-25T01:13:26.287Z",
   "Resources": {
     "Role": {
       "Type": "AWS::IAM::Role",
@@ -114,6 +114,25 @@
                 }
               ]
             }
+          },
+          {
+            "PolicyName": "ArcSimpleNotificationServicePolicy",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "sns:Publish"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": [
+                      "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}*",
+                      {}
+                    ]
+                  }
+                }
+              ]
+            }
           }
         ]
       }
@@ -132,6 +151,23 @@
         },
         "Value": {
           "Ref": "DataTable"
+        }
+      }
+    },
+    "MessagePostedEventTopicParam": {
+      "Type": "AWS::SSM::Parameter",
+      "Properties": {
+        "Type": "String",
+        "Name": {
+          "Fn::Sub": [
+            "/${AWS::StackName}/events/${event}",
+            {
+              "event": "message-posted"
+            }
+          ]
+        },
+        "Value": {
+          "Ref": "MessagePostedEventTopic"
         }
       }
     },
@@ -164,7 +200,7 @@
             }
           ]
         },
-        "Value": "false"
+        "Value": "true"
       }
     },
     "ParameterStorePolicy": {
@@ -234,6 +270,43 @@
             }
           },
           "paths": {
+            "/channels/{key}": {
+              "get": {
+                "x-amazon-apigateway-integration": {
+                  "payloadFormatVersion": "2.0",
+                  "type": "aws_proxy",
+                  "httpMethod": "POST",
+                  "uri": {
+                    "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetChannelsKeyHTTPLambda.Arn}/invocations"
+                  },
+                  "connectionType": "INTERNET"
+                }
+              },
+              "post": {
+                "x-amazon-apigateway-integration": {
+                  "payloadFormatVersion": "2.0",
+                  "type": "aws_proxy",
+                  "httpMethod": "POST",
+                  "uri": {
+                    "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PostChannelsKeyHTTPLambda.Arn}/invocations"
+                  },
+                  "connectionType": "INTERNET"
+                }
+              }
+            },
+            "/login": {
+              "get": {
+                "x-amazon-apigateway-integration": {
+                  "payloadFormatVersion": "2.0",
+                  "type": "aws_proxy",
+                  "httpMethod": "POST",
+                  "uri": {
+                    "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetLoginHTTPLambda.Arn}/invocations"
+                  },
+                  "connectionType": "INTERNET"
+                }
+              }
+            },
             "/": {
               "get": {
                 "x-amazon-apigateway-integration": {
@@ -245,27 +318,16 @@
                   },
                   "connectionType": "INTERNET"
                 }
-              },
-              "post": {
-                "x-amazon-apigateway-integration": {
-                  "payloadFormatVersion": "2.0",
-                  "type": "aws_proxy",
-                  "httpMethod": "POST",
-                  "uri": {
-                    "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PostIndexHTTPLambda.Arn}/invocations"
-                  },
-                  "connectionType": "INTERNET"
-                }
               }
             },
-            "/reset": {
+            "/logout": {
               "post": {
                 "x-amazon-apigateway-integration": {
                   "payloadFormatVersion": "2.0",
                   "type": "aws_proxy",
                   "httpMethod": "POST",
                   "uri": {
-                    "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PostResetHTTPLambda.Arn}/invocations"
+                    "Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PostLogoutHTTPLambda.Arn}/invocations"
                   },
                   "connectionType": "INTERNET"
                 }
@@ -294,6 +356,144 @@
             }
           }
         }
+      }
+    },
+    "GetChannelsKeyHTTPLambda": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "index.handler",
+        "CodeUri": "/Users/brian/Repo/arc-example-wss/src/http/get-channels-000key",
+        "Runtime": "nodejs16.x",
+        "Architectures": [
+          "arm64"
+        ],
+        "MemorySize": 1152,
+        "EphemeralStorage": {
+          "Size": 512
+        },
+        "Timeout": 5,
+        "Environment": {
+          "Variables": {
+            "ARC_APP_NAME": "arc-example-wss",
+            "ARC_ENV": "staging",
+            "ARC_ROLE": {
+              "Ref": "Role"
+            },
+            "ARC_SESSION_TABLE_NAME": "jwe",
+            "ARC_STACK_NAME": {
+              "Ref": "AWS::StackName"
+            },
+            "ARC_STATIC_BUCKET": {
+              "Ref": "StaticBucket"
+            },
+            "ARC_WSS_URL": {
+              "Fn::Sub": [
+                "wss://${WS}.execute-api.${AWS::Region}.amazonaws.com/staging",
+                {}
+              ]
+            },
+            "GITHUB_CLIENT_ID": "67178a38d302728edf5e",
+            "GITHUB_CLIENT_SECRET": "3188deaf1683724f084b39c2680a89479e37fdd4",
+            "GITHUB_REDIRECT": "https://meatspace.chat/login"
+          }
+        },
+        "Role": {
+          "Fn::Sub": [
+            "arn:aws:iam::${AWS::AccountId}:role/${roleName}",
+            {
+              "roleName": {
+                "Ref": "Role"
+              }
+            }
+          ]
+        },
+        "Events": {
+          "GetChannelsKeyHTTPEvent": {
+            "Type": "HttpApi",
+            "Properties": {
+              "Path": "/channels/{key}",
+              "Method": "GET",
+              "ApiId": {
+                "Ref": "HTTP"
+              }
+            }
+          }
+        }
+      },
+      "ArcMetadata": {
+        "pragma": "http",
+        "name": "get /channels/:key",
+        "method": "get",
+        "path": "/channels/:key"
+      }
+    },
+    "GetLoginHTTPLambda": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "index.handler",
+        "CodeUri": "/Users/brian/Repo/arc-example-wss/src/http/get-login",
+        "Runtime": "nodejs16.x",
+        "Architectures": [
+          "arm64"
+        ],
+        "MemorySize": 1152,
+        "EphemeralStorage": {
+          "Size": 512
+        },
+        "Timeout": 5,
+        "Environment": {
+          "Variables": {
+            "ARC_APP_NAME": "arc-example-wss",
+            "ARC_ENV": "staging",
+            "ARC_ROLE": {
+              "Ref": "Role"
+            },
+            "ARC_SESSION_TABLE_NAME": "jwe",
+            "ARC_STACK_NAME": {
+              "Ref": "AWS::StackName"
+            },
+            "ARC_STATIC_BUCKET": {
+              "Ref": "StaticBucket"
+            },
+            "ARC_WSS_URL": {
+              "Fn::Sub": [
+                "wss://${WS}.execute-api.${AWS::Region}.amazonaws.com/staging",
+                {}
+              ]
+            },
+            "GITHUB_CLIENT_ID": "67178a38d302728edf5e",
+            "GITHUB_CLIENT_SECRET": "3188deaf1683724f084b39c2680a89479e37fdd4",
+            "GITHUB_REDIRECT": "https://meatspace.chat/login"
+          }
+        },
+        "Role": {
+          "Fn::Sub": [
+            "arn:aws:iam::${AWS::AccountId}:role/${roleName}",
+            {
+              "roleName": {
+                "Ref": "Role"
+              }
+            }
+          ]
+        },
+        "Events": {
+          "GetLoginHTTPEvent": {
+            "Type": "HttpApi",
+            "Properties": {
+              "Path": "/login",
+              "Method": "GET",
+              "ApiId": {
+                "Ref": "HTTP"
+              }
+            }
+          }
+        }
+      },
+      "ArcMetadata": {
+        "pragma": "http",
+        "name": "get /login",
+        "method": "get",
+        "path": "/login"
       }
     },
     "GetIndexHTTPLambda": {
@@ -330,7 +530,10 @@
                 {}
               ]
             },
-            "ARC_STATIC_SPA": false
+            "ARC_STATIC_SPA": false,
+            "GITHUB_CLIENT_ID": "67178a38d302728edf5e",
+            "GITHUB_CLIENT_SECRET": "3188deaf1683724f084b39c2680a89479e37fdd4",
+            "GITHUB_REDIRECT": "https://meatspace.chat/login"
           }
         },
         "Role": {
@@ -363,11 +566,11 @@
         "path": "/"
       }
     },
-    "PostResetHTTPLambda": {
+    "PostChannelsKeyHTTPLambda": {
       "Type": "AWS::Serverless::Function",
       "Properties": {
         "Handler": "index.handler",
-        "CodeUri": "/Users/brian/Repo/arc-example-wss/src/http/post-reset",
+        "CodeUri": "/Users/brian/Repo/arc-example-wss/src/http/post-channels-000key",
         "Runtime": "nodejs16.x",
         "Architectures": [
           "arm64"
@@ -396,7 +599,10 @@
                 "wss://${WS}.execute-api.${AWS::Region}.amazonaws.com/staging",
                 {}
               ]
-            }
+            },
+            "GITHUB_CLIENT_ID": "67178a38d302728edf5e",
+            "GITHUB_CLIENT_SECRET": "3188deaf1683724f084b39c2680a89479e37fdd4",
+            "GITHUB_REDIRECT": "https://meatspace.chat/login"
           }
         },
         "Role": {
@@ -410,10 +616,10 @@
           ]
         },
         "Events": {
-          "PostResetHTTPEvent": {
+          "PostChannelsKeyHTTPEvent": {
             "Type": "HttpApi",
             "Properties": {
-              "Path": "/reset",
+              "Path": "/channels/{key}",
               "Method": "POST",
               "ApiId": {
                 "Ref": "HTTP"
@@ -424,16 +630,16 @@
       },
       "ArcMetadata": {
         "pragma": "http",
-        "name": "post /reset",
+        "name": "post /channels/:key",
         "method": "post",
-        "path": "/reset"
+        "path": "/channels/:key"
       }
     },
-    "PostIndexHTTPLambda": {
+    "PostLogoutHTTPLambda": {
       "Type": "AWS::Serverless::Function",
       "Properties": {
         "Handler": "index.handler",
-        "CodeUri": "/Users/brian/Repo/arc-example-wss/src/http/post-index",
+        "CodeUri": "/Users/brian/Repo/arc-example-wss/src/http/post-logout",
         "Runtime": "nodejs16.x",
         "Architectures": [
           "arm64"
@@ -462,7 +668,10 @@
                 "wss://${WS}.execute-api.${AWS::Region}.amazonaws.com/staging",
                 {}
               ]
-            }
+            },
+            "GITHUB_CLIENT_ID": "67178a38d302728edf5e",
+            "GITHUB_CLIENT_SECRET": "3188deaf1683724f084b39c2680a89479e37fdd4",
+            "GITHUB_REDIRECT": "https://meatspace.chat/login"
           }
         },
         "Role": {
@@ -476,10 +685,10 @@
           ]
         },
         "Events": {
-          "PostIndexHTTPEvent": {
+          "PostLogoutHTTPEvent": {
             "Type": "HttpApi",
             "Properties": {
-              "Path": "/",
+              "Path": "/logout",
               "Method": "POST",
               "ApiId": {
                 "Ref": "HTTP"
@@ -490,9 +699,9 @@
       },
       "ArcMetadata": {
         "pragma": "http",
-        "name": "post /",
+        "name": "post /logout",
         "method": "post",
-        "path": "/"
+        "path": "/logout"
       }
     },
     "DataTable": {
@@ -523,6 +732,78 @@
           "AttributeName": "ttl",
           "Enabled": true
         }
+      }
+    },
+    "MessagePostedEventLambda": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "index.handler",
+        "CodeUri": "/Users/brian/Repo/arc-example-wss/src/events/message-posted",
+        "Runtime": "nodejs16.x",
+        "Architectures": [
+          "arm64"
+        ],
+        "MemorySize": 1152,
+        "EphemeralStorage": {
+          "Size": 512
+        },
+        "Timeout": 5,
+        "Environment": {
+          "Variables": {
+            "ARC_APP_NAME": "arc-example-wss",
+            "ARC_ENV": "staging",
+            "ARC_ROLE": {
+              "Ref": "Role"
+            },
+            "ARC_SESSION_TABLE_NAME": "jwe",
+            "ARC_STACK_NAME": {
+              "Ref": "AWS::StackName"
+            },
+            "ARC_STATIC_BUCKET": {
+              "Ref": "StaticBucket"
+            },
+            "ARC_WSS_URL": {
+              "Fn::Sub": [
+                "wss://${WS}.execute-api.${AWS::Region}.amazonaws.com/staging",
+                {}
+              ]
+            },
+            "GITHUB_CLIENT_ID": "67178a38d302728edf5e",
+            "GITHUB_CLIENT_SECRET": "3188deaf1683724f084b39c2680a89479e37fdd4",
+            "GITHUB_REDIRECT": "https://meatspace.chat/login"
+          }
+        },
+        "Role": {
+          "Fn::Sub": [
+            "arn:aws:iam::${AWS::AccountId}:role/${roleName}",
+            {
+              "roleName": {
+                "Ref": "Role"
+              }
+            }
+          ]
+        },
+        "Events": {
+          "MessagePostedEvent": {
+            "Type": "SNS",
+            "Properties": {
+              "Topic": {
+                "Ref": "MessagePostedEventTopic"
+              }
+            }
+          }
+        }
+      },
+      "ArcMetadata": {
+        "pragma": "events",
+        "name": "message-posted"
+      }
+    },
+    "MessagePostedEventTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "DisplayName": "MessagePosted",
+        "Subscription": []
       }
     },
     "StaticBucket": {
@@ -681,7 +962,10 @@
                 "wss://${WS}.execute-api.${AWS::Region}.amazonaws.com/staging",
                 {}
               ]
-            }
+            },
+            "GITHUB_CLIENT_ID": "67178a38d302728edf5e",
+            "GITHUB_CLIENT_SECRET": "3188deaf1683724f084b39c2680a89479e37fdd4",
+            "GITHUB_REDIRECT": "https://meatspace.chat/login"
           }
         },
         "Role": {
@@ -784,7 +1068,10 @@
                 "wss://${WS}.execute-api.${AWS::Region}.amazonaws.com/staging",
                 {}
               ]
-            }
+            },
+            "GITHUB_CLIENT_ID": "67178a38d302728edf5e",
+            "GITHUB_CLIENT_SECRET": "3188deaf1683724f084b39c2680a89479e37fdd4",
+            "GITHUB_REDIRECT": "https://meatspace.chat/login"
           }
         },
         "Role": {
@@ -887,7 +1174,10 @@
                 "wss://${WS}.execute-api.${AWS::Region}.amazonaws.com/staging",
                 {}
               ]
-            }
+            },
+            "GITHUB_CLIENT_ID": "67178a38d302728edf5e",
+            "GITHUB_CLIENT_SECRET": "3188deaf1683724f084b39c2680a89479e37fdd4",
+            "GITHUB_REDIRECT": "https://meatspace.chat/login"
           }
         },
         "Role": {
@@ -1264,6 +1554,12 @@
       "Description": "API ID (ApiId)",
       "Value": {
         "Ref": "HTTP"
+      }
+    },
+    "MessagePostedEventTopic": {
+      "Description": "An SNS Topic",
+      "Value": {
+        "Ref": "MessagePostedEventTopic"
       }
     },
     "BucketURL": {

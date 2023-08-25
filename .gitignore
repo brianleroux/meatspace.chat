@@ -1,3 +1,5 @@
 sam.yaml
 node_modules
 .env
+public/static.json
+src/shared/static.json

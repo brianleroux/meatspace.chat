@@ -14,6 +14,9 @@ cdn
 @events
 message-posted
 
+@static
+fingerprint true
+
 # enable src/ws/* handlers
 @ws
 
