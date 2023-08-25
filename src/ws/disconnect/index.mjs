@@ -1,14 +1,8 @@
-import data from '@begin/data'
+import connections from '@architect/shared/connections.mjs'
 
-// clean up bad connections
 export async function handler (event) {
-  try {
-    let table = 'connections'
-    let key = event.requestContext.connectionId
-    await data.destroy({ table, key })
-  }
-  catch (e) {
-    console.error('swallowing', e)
-  }
+  console.log(event)
+  let key = event.requestContext.connectionId
+  await connections.destroy({ key })
   return { statusCode: 200 }
 }

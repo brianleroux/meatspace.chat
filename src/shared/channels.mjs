@@ -1,5 +1,6 @@
 import arc from '@architect/functions'
 import data from '@begin/data'
+import connections from './connections.mjs'
 
 const table = 'channels'
 
@@ -88,7 +89,7 @@ export default {
     // let SNS deal with notifying web socket connections
     await arc.events.publish({
       name: 'message-posted',
-      payload: { channel, message: msg }
+      payload: { channel, ...msg }
     })
     return msg
   },
@@ -103,23 +104,24 @@ export default {
     for (let account of members.map(a => a.account)) {
       // members could have more than one browser tab open!
       // get members in the room and find out all their connectionIds
-      let connections = await data.get({
-        table: `connections:accounts:${account.id}`
-      })
+      let connected = await connections.read(account)
       // loop thru sending messages
-      for (let connection of connections) {
+      for (let connection of connected) {
         // don't let some failures block other successes
         try {
           await arc.ws.send({
             id: connection.key,
-            payload: {
-              message: event
-            }
+            payload:  event
           })
         }
         catch (e) {
-          if (e.name != 'GoneException') {
-            // TODO cleanup failed connection here w connection.key
+          if (e.name === 'GoneException') {
+            await connections.destroy({
+              key: connection.key,
+              id: account.id
+            })
+          }
+          else {
             console.log(e)
           }
         }
