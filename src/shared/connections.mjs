@@ -1,7 +1,7 @@
 import data from '@begin/data'
 
 const table = 'connections'
-const ttl = 60 * 60 // 1 hour in seconds
+const ttl = (Date.now() * 1000) + 60 * 60 // 1 hour in seconds
 
 export default {
 

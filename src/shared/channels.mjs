@@ -3,6 +3,7 @@ import data from '@begin/data'
 import connections from './connections.mjs'
 
 const table = 'channels'
+const ttl = (Date.now() * 1000) + 60 * 60 // 1 hour in seconds
 
 export default {
 
@@ -11,7 +12,8 @@ export default {
     let channel = await data.set({
       table,
       name: `${account.login || account.name || 'unknown'}'s channel`,
-      account
+      account,
+      ttl
     })
     // keep track of channels a given account has joined
     await this.join({ account, channel })
@@ -24,12 +26,14 @@ export default {
       // get channels by account
       table: `${table}:${account.id}`,
       key:  channel.key,
-      channel
+      channel,
+      ttl,
     }, {
       // get accounts by channel
       table: `${table}:${channel.key}:accounts`,
       key: account.id,
       account,
+      ttl
     } ])
   },
 
@@ -84,7 +88,8 @@ export default {
       table: `${table}:${channel}:posts`,
       created: Date.now(),
       account,
-      message
+      message,
+      ttl
     })
     // let SNS deal with notifying web socket connections
     await arc.events.publish({
