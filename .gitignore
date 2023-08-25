@@ -5,3 +5,5 @@ public/static.json
 src/shared/static.json
 sam.json
 .enhance
+shared/enhance-styles
+shared/static.json
