@@ -12,6 +12,8 @@
     "@architect/functions": "^7.0.0",
     "@architect/sandbox": "^5.8.0",
     "@begin/data": "^4.0.2",
+    "@enhance/arc-plugin-enhance": "^6.2.1",
+    "@enhance/styles-cribsheet": "^0.0.9",
     "markdown-it": "^13.0.1",
     "tiny-json-http": "^7.5.1",
     "xss": "^1.0.14"

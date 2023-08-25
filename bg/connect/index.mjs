@@ -16,5 +16,3 @@ export let handler = arc.http(async function connect (req) {
   // always keep it 200
   return { code: 200 }
 })
-
-
