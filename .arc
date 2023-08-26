@@ -17,6 +17,13 @@ disconnect
 message-posted
   src bg/posted
 
+# restore table
+@tables
+data
+  scopeID *
+  dataID **
+  ttl TTL
+
 # used by src/plugins/cdn.mjs
 @dns
 domain meatspace.chat
