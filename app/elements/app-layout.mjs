@@ -1,6 +1,9 @@
 export default function layout ({ html, state }) {
   return html`
-    <header>${state.attrs.title || 'meatspace.chat'}</header>
+    <header>
+      <h1>${state.attrs.title || 'meatspace.chat'}</h1>
+      <slot name=header></slot>
+    </header>
     <main><slot></slot></main>
     <footer>
       <slot name=footer></slot>

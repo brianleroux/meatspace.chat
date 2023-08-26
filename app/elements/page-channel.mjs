@@ -13,10 +13,7 @@ export default function channel ({ html, state }) {
 
   return html`<app-layout title="${channel.name}">
     <header slot=header>
-      <form action=/logout method=post>
-        <button><img width=40 src=${account.avatar}> Sign out</button>
-      </form>
-      <h1>${channel.name}</h1>
+      <form-signout src=${account.avatar}></form-signout>
       <details> 
         <summary>Invite link</summary>
         <input type=text value="${invite}">
@@ -34,7 +31,7 @@ export default function channel ({ html, state }) {
       <script>
         window.WS_URL = '${endpoint}'
       </script>
-      <script type=module src=/_public/index.mjs></script>
+      <script type=module src=/_public/browser/channel.mjs></script>
     </nav>
   </app-layout>`
 }

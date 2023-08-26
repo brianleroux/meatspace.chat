@@ -1,3 +1,8 @@
+import enhance from '@enhance/element'
+import render from '../elements/message-element.mjs'
+
+enhance('message-element', { render })
+
 // get the web socket url from the backend
 let url = window.WS_URL
 
@@ -16,10 +21,8 @@ form.onsubmit = function onsubmit (e) {
     },
     body: data
   }).then(res => {
-    res.json().then(console.log)
     msg.value = ''
-  }).catch(err => {
-    console.log(err)
+    res.json().then(console.log)
   })
 }
 
@@ -46,11 +49,13 @@ function message (e) {
   let channel = window.location.pathname.replace('/channels/', '')
   let m = JSON.parse(e.data)
   if (m.channel === channel) {
-    main.innerHTML += `<article>
-      <h3>${m.account.name || m.account.login || 'anon'}</h3>
-      <img src="${m.account.avatar}" width=40>
-      <p>${m.message}</p><a>${new Date(m.created).toISOString()}</a>
-    </article>`
+    main.innerHTML += `
+      <message-element 
+        key=${m.key}
+        name=${m.account.name || m.account.login || 'anon'}
+        avatar=${m.account.avatar}
+        message="${m.message}"
+        created=${new Date(m.created).toISOString()}
+      ></message-element>`
   }
-  else {}
 }

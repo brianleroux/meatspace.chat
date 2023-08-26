@@ -8,4 +8,3 @@ export default function link (invite) {
     href += `&state=${invite}`
   return href
 }
-

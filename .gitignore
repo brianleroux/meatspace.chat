@@ -7,3 +7,4 @@ sam.json
 .enhance
 shared/enhance-styles
 shared/static.json
+public/browser
