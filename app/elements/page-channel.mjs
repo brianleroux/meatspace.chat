@@ -19,15 +19,12 @@ export default function channel ({ html, state }) {
         <input type=text value="${invite}">
       </details>
     </header>
-
+    
+    <channel-messages></channel-messages>
     ${messages}
 
     <nav slot=footer>
-      <form id=postform action=/channels/${channel.key} method=post>
-        <input type=text id=message name=message autofocus>
-        <button>post</button>
-      </form>
-
+      <form-post-message channel=${channel.key}></form-post-message>
       <script>
         window.WS_URL = '${endpoint}'
       </script>
